@@ -11,7 +11,7 @@ class MainController extends Controller
   public function status(): JsonResponse
   {
     return response()->json([
-      'status' => 'API is running'
+      'status' => 'API v1 is running'
     ]);
   }
 }
