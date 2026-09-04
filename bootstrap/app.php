@@ -9,6 +9,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Validation\ValidationException;
 
 return Application::configure(basePath: dirname(__DIR__))
   ->withRouting(
@@ -35,4 +36,10 @@ return Application::configure(basePath: dirname(__DIR__))
     $exceptions->render(function (ThrottleRequestsException $e, Request $request) {
       return ApiResponse::error('Too many requests', 429);
     });
+
+    // $exceptions->render(function (ValidationException $e, Request $request) {
+    //   if ($request->is('api/*')) {
+    //     return ApiResponse::error(code: 422, errors: $e->errors());
+    //   }
+    // });
   })->create();
