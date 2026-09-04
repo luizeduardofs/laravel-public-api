@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\ApiResponse;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -8,4 +9,8 @@ Route::prefix('v1')->group(function () {
 
 Route::prefix('v2')->group(function () {
   require base_path('routes/api_v2.php');
+});
+
+Route::fallback(function () {
+  return ApiResponse::error('Not found', 404);
 });
