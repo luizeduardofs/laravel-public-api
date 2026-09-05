@@ -43,7 +43,7 @@ class MainController extends Controller
     ]);
   }
 
-  public function getCategoryById(string $id): JsonResponse
+  public function getCategoryById(int $id): JsonResponse
   {
     $category = Category::find($id);
 
@@ -72,6 +72,44 @@ class MainController extends Controller
     );
   }
 
+  public function updateCategory(Request $request, int $id): JsonResponse
+  {
+    $category = Category::find($id);
+
+    if (!$id) {
+      return ApiResponse::error("Category with ID {$id} not found", 404);
+    }
+
+    $data = $request->validate([
+      'name' => "string|max:50|unique:categories,name,{$id}",
+      'description' => 'nullable|string',
+    ]);
+
+    $category->update($data);
+
+    return ApiResponse::success(
+      [new CategoryResource($category)],
+      'Category updated successfully',
+    );
+  }
+
+  public function deleteCategory(int $id): JsonResponse
+  {
+    $category = Category::find($id);
+
+    if (!$category) {
+      return ApiResponse::error("Category with ID {$id} not found", 404);
+    }
+
+    $category->delete();
+
+    return ApiResponse::success(
+      [],
+      'Category deleted successfully',
+      204
+    );
+  }
+
   public function listProducts(): JsonResponse
   {
     $perPage = request()->query('per_page', 15);
@@ -88,7 +126,7 @@ class MainController extends Controller
     ]);
   }
 
-  public function getProductById(string $id): JsonResponse
+  public function getProductById(int $id): JsonResponse
   {
     $product = Product::find($id);
 
@@ -101,7 +139,7 @@ class MainController extends Controller
     ]);
   }
 
-  public function getProductByCategory(string $id): JsonResponse
+  public function getProductByCategory(int $id): JsonResponse
   {
     $category = Category::find($id);
 
@@ -140,6 +178,45 @@ class MainController extends Controller
       [new ProductResource($product)],
       'Product created successfully',
       201,
+    );
+  }
+
+  public function updateProducts(Request $request, int $id): JsonResponse
+  {
+    $product = Product::find($id);
+
+    if (!$product) {
+      return ApiResponse::error("Product with ID {$id} not found", 404);
+    }
+
+    $data = $request->validate([
+      'name' => "string|max:50|unique:products,name,{$id}",
+      'description' => 'nullable|string',
+      'category_id' => 'integer|exists:categories,id',
+    ]);
+
+    $product->update($data);
+
+    return ApiResponse::success(
+      [new ProductResource($product)],
+      'Product updated successfully',
+    );
+  }
+
+  public function deleteProducts(int $id): JsonResponse
+  {
+    $product = Product::find($id);
+
+    if (!$product) {
+      return ApiResponse::error("Product with ID {$id} not found", 404);
+    }
+
+    $product->delete();
+
+    return ApiResponse::success(
+      [],
+      'Product deleted successfully',
+      204
     );
   }
 
@@ -186,5 +263,61 @@ class MainController extends Controller
         'total_movements' => $movements->total(),
       ],
     ]);
+  }
+
+  public function createMovements(Request $request): JsonResponse
+  {
+    $data = $request->validate([
+      'product_id' => 'required|integer|exists:products,id',
+      'quantity' => 'required|integer|min:1',
+      'movement_type' => 'required|in:in,out',
+    ]);
+
+    $movement = Movement::create($data);
+
+    return ApiResponse::success(
+      [new MovementResource($movement)],
+      'Movement created successfully',
+      201,
+    );
+  }
+
+  public function updateMovements(Request $request, int $id): JsonResponse
+  {
+    $movement = Movement::find($id);
+
+    if (!$movement) {
+      return ApiResponse::error("Movement with ID {$id} not found", 404);
+    }
+
+    $data = $request->validate([
+      'product_id' => 'integer|exists:products,id',
+      'quantity' => 'integer|min:1',
+      'movement_type' => 'in:in,out',
+    ]);
+
+    $movement->update($data);
+
+    return ApiResponse::success(
+      [new MovementResource($movement)],
+      'Movement updated successfully',
+    );
+  }
+
+  public function deleteMovements(int $id): JsonResponse
+  {
+    $movement = Movement::find($id);
+
+    if (!$movement) {
+      return ApiResponse::error("Movement with ID {$id} not found", 404);
+    }
+
+    $movement->delete();
+
+    return ApiResponse::success(
+      [],
+      'Movement deleted successfully',
+      204
+    );
   }
 }

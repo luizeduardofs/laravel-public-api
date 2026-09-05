@@ -33,13 +33,26 @@ return Application::configure(basePath: dirname(__DIR__))
       fn(Request $request) => $request->is('api/*') || $request->expectsJson(),
     );
 
-    $exceptions->render(function (ThrottleRequestsException $e, Request $request) {
-      return ApiResponse::error('Too many requests', 429);
-    });
+    $exceptions->render(
+      fn(ThrottleRequestsException $e, Request $request) =>
+      ApiResponse::error('Too many requests', 429)
+    );
 
     // $exceptions->render(function (ValidationException $e, Request $request) {
     //   if ($request->is('api/*')) {
     //     return ApiResponse::error(code: 422, errors: $e->errors());
     //   }
     // });
+
+    $exceptions->render(
+      function (\Exception $e, Request $request) {
+        if ($request->is('api/*')) {
+          return ApiResponse::error(
+            message: "An unexpected error occurred",
+            code: 500,
+            errors: [$e->getMessage()],
+          );
+        }
+      }
+    );
   })->create();
